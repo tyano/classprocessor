@@ -9,13 +9,13 @@ import static com.shelfmap.classprocessor.util.Strings.capitalize;
 public class DefaultClassNameResolver implements ClassNameResolver {
 
     @Override
-    public String classNameFor(String interfaceName) {
-        return getClassNamePrefix() + capitalize(interfaceName) + getClassNameSuffix();
+    public String classNameFor(String className) {
+        return getClassNamePrefix() + capitalize(className) + getClassNameSuffix();
     }
 
     @Override
-    public String abstractClassNameFor(String interfaceName) {
-        return getAbstractClassNamePrefix() + capitalize(interfaceName) + getAbstractClassNameSuffix();
+    public String abstractClassNameFor(String className) {
+        return getAbstractClassNamePrefix() + capitalize(className) + getAbstractClassNameSuffix();
     }
 
     protected String getClassNamePrefix() { return ""; }

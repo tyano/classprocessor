@@ -5,6 +5,6 @@ package com.shelfmap.classprocessor;
  * @author Tsutomu YANO
  */
 public interface ClassNameResolver {
-    String classNameFor(String interfaceName);
-    String abstractClassNameFor(String interfaceName);
+    String classNameFor(String className);
+    String abstractClassNameFor(String className);
 }
