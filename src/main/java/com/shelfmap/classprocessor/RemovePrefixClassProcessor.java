@@ -5,18 +5,18 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 
 /**
- * An subclass of {@link InterfaceProcessor}.
+ * An subclass of {@link ClassProcessor}.
  * <p>
- * This class uses {@link RemoveInterfacePrefixClassNameResolver} as the default implementation of
+ * This class uses {@link RemovePrefixClassNameResolver} as the default implementation of
  * {@link ClassNameResolver}.
  * 
  * @author Tsutomu YANO
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedAnnotationTypes({"com.shelfmap.interfaceprocessor.annotation.GenerateClass"})
-public class RemovePrefixInterfaceProcessor extends InterfaceProcessor {
+@SupportedAnnotationTypes({"com.shelfmap.classprocessor.annotation.GenerateClass"})
+public class RemovePrefixClassProcessor extends ClassProcessor {
 
-    public RemovePrefixInterfaceProcessor() {
+    public RemovePrefixClassProcessor() {
         super();
     }
 

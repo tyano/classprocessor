@@ -45,8 +45,8 @@ import javax.lang.model.util.Types;
  * @author Tsutomu YANO
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedAnnotationTypes({"com.shelfmap.interfaceprocessor.annotation.GenerateClass"})
-public class InterfaceProcessor extends AbstractProcessor {
+@SupportedAnnotationTypes({"com.shelfmap.classprocessor.annotation.GenerateClass"})
+public class ClassProcessor extends AbstractProcessor {
 
     private static final String INSTANCE_LOCK = "instanceLock";
     private static final String IS_PACKAGE_NAME_RELATIVE = "isPackageNameRelative";

@@ -5,7 +5,7 @@ import java.util.Collection;
 
 /**
  * A interface which extends this interface is handled as supporting
- * PropertyChangeEvent. the InterfaceProcessor will generate setters which
+ * PropertyChangeEvent. the {@link ClassProcessor} will generate setters which
  * fire PropertyChangeEvent when a value is set to the property, and
  * methods for appending EventListeners.
  *
