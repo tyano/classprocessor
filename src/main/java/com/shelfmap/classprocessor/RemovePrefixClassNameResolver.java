@@ -8,25 +8,25 @@ package com.shelfmap.classprocessor;
 public class RemovePrefixClassNameResolver extends DefaultClassNameResolver implements ClassNameResolver {
 
     @Override
-    public String classNameFor(String interfaceName) {
-        parameterCheck(interfaceName);
-        String remains = interfaceName.substring(1);
+    public String classNameFor(String className) {
+        parameterCheck(className);
+        String remains = className.substring(1);
         return super.classNameFor(remains);
     }
 
     @Override
-    public String abstractClassNameFor(String interfaceName) {
-        parameterCheck(interfaceName);
-        String remains = interfaceName.substring(1);
+    public String abstractClassNameFor(String className) {
+        parameterCheck(className);
+        String remains = className.substring(1);
         return super.abstractClassNameFor(remains);
     }
 
-    private void parameterCheck(String interfaceName) {
-        if(interfaceName == null) throw new IllegalArgumentException("'interfaceName' should not be null.");
-        if(interfaceName.isEmpty()) throw new IllegalArgumentException("'interfaceName' should not be an empty string.");
-        if(interfaceName.length() < 2) throw new IllegalArgumentException("the number of chars of 'interfaceName' should be longer than 2, and it should begin with 'I'.");
-        if(!interfaceName.startsWith("I")) {
-            throw new IllegalArgumentException("The first charactor of 'interfaceName' should be 'I'.");
+    private void parameterCheck(String className) {
+        if(className == null) throw new IllegalArgumentException("'className' should not be null.");
+        if(className.isEmpty()) throw new IllegalArgumentException("'className' should not be an empty string.");
+        if(className.length() < 2) throw new IllegalArgumentException("the number of chars of 'className' should be longer than 2, and it should begin with 'I'.");
+        if(!className.startsWith("I") && !className.startsWith("T")) {
+            throw new IllegalArgumentException("The first charactor of 'className' should be 'I' or 'T'.");
         }    
     }
 
