@@ -57,15 +57,6 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
         if(element.getKind() == ElementKind.INTERFACE || element.getKind() == ElementKind.CLASS) {
             ClassDefinition definition = env.getClassDefinition();
             
-            switch(element.getKind()) {
-                case INTERFACE:
-                    definition.setElementType(ElementType.INTERFACE);
-                    break;
-                case CLASS:
-                    definition.setElementType(ElementType.CLASS);
-                    break;
-            }
-            
             //if the element have some super-interfaces, visit them at first.
             for (TypeMirror superType : element.getInterfaces()) {
                 Element superInterface = env.getProcessingEnvironment().getTypeUtils().asElement(superType);
@@ -77,6 +68,15 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
             }
 
             if(env.getLevel() == 0) {
+                switch(element.getKind()) {
+                    case INTERFACE:
+                        definition.setElementType(ElementType.INTERFACE);
+                        break;
+                    case CLASS:
+                        definition.setElementType(ElementType.CLASS);
+                        break;
+                }
+
                 String[] splited = splitPackageName(element.getQualifiedName().toString());
                 if(splited == null) {
                     throw new IllegalStateException("the qualified name of the element " + element.toString() + " was a null or an empty string.");
@@ -207,6 +207,8 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
         Property property = null;
         if(ee.getKind() == ElementKind.METHOD) {
             ProcessingEnvironment p = env.getProcessingEnvironment();
+            ClassDefinition definition = env.getClassDefinition();
+            
             int level = env.getLevel();
             String name = ee.getSimpleName().toString();
 
@@ -214,20 +216,21 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
             Elements elementUtil = p.getElementUtils();
 
             boolean isDefined = level == 0;
+            boolean isAbstract = definition.getElementType() == ElementType.CLASS || ee.getModifiers().contains(javax.lang.model.element.Modifier.ABSTRACT);
 
             if(name.startsWith("get") || name.startsWith("set") || name.startsWith("is")) {
                 if(name.startsWith("get")) {
-                    property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getReturnType(), isDefined, ee, null);
+                    property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getReturnType(), isDefined, isAbstract, ee, null);
                 } else if(name.startsWith("set")) {
                     if(ee.getParameters().size() == 1) {
-                        property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getParameters().get(0).asType(), isDefined, null, ee);
+                        property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getParameters().get(0).asType(), isDefined, isAbstract, null, ee);
                     }
                 } else if(name.startsWith("is")) {
                     PrimitiveType bool = typeUtil.getPrimitiveType(TypeKind.BOOLEAN);
                     if(typeUtil.isSameType(ee.getReturnType(), bool) ||
                        typeUtil.isSameType(ee.getReturnType(), typeUtil.boxedClass(bool).asType())) {
 
-                        property =  new DefaultProperty(uncapitalize(name.substring(2)), ee.getReturnType(), isDefined, ee, null);
+                        property =  new DefaultProperty(uncapitalize(name.substring(2)), ee.getReturnType(), isDefined, isAbstract, ee, null);
                     }
                 }
 

@@ -29,6 +29,7 @@ public class DefaultProperty implements Property {
     private boolean writable;
     private boolean readable;
     private boolean fieldDefined = false;
+    private boolean isAbstract = true;
     private final String name;
     private final TypeMirror type;
     private String retainType = "HOLD";
@@ -37,10 +38,11 @@ public class DefaultProperty implements Property {
     private ExecutableElement reader;
     private ExecutableElement writer;
 
-    public DefaultProperty(String name, TypeMirror type, boolean defined, ExecutableElement reader, ExecutableElement writer) {
+    public DefaultProperty(String name, TypeMirror type, boolean defined, boolean isAbstract, ExecutableElement reader, ExecutableElement writer) {
         this.name = name;
         this.type = type;
         this.defined = defined;
+        this.isAbstract = isAbstract;
         this.readable = (reader != null);
         this.writable = (writer != null);
         this.reader = reader;
@@ -70,6 +72,16 @@ public class DefaultProperty implements Property {
     @Override
     public void setFieldDefined(boolean isFieldDefined) {
         this.fieldDefined = isFieldDefined;
+    }
+
+    @Override
+    public boolean isAbstract() {
+        return this.isAbstract;
+    }
+
+    @Override
+    public void setAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
     }
 
     @Override

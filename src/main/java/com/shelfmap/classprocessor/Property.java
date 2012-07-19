@@ -28,6 +28,8 @@ public interface Property extends Attribute {
     boolean isDefined();
     boolean isReadable();
     boolean isWritable();
+    boolean isAbstract();
+    void setAbstract(boolean isAbstract);
     
     /**
      * return true if a backend field for a property is already defined.

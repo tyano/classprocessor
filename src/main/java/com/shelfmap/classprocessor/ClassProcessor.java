@@ -17,7 +17,7 @@ package com.shelfmap.classprocessor;
 
 import com.shelfmap.classprocessor.annotation.GenerateClass;
 import com.shelfmap.classprocessor.impl.BuildingEnvironment;
-import com.shelfmap.classprocessor.impl.DefautClassDefinition;
+import com.shelfmap.classprocessor.impl.DefaultClassDefinition;
 import com.shelfmap.classprocessor.impl.DefaultInterfaceFilter;
 import com.shelfmap.classprocessor.util.IO;
 import com.shelfmap.classprocessor.util.Objects;
@@ -76,7 +76,7 @@ public class ClassProcessor extends AbstractProcessor {
 
                 if(!generateAnnotation.autoGenerate()) continue;
 
-                ClassDefinition definition = new DefautClassDefinition();
+                ClassDefinition definition = new DefaultClassDefinition();
                 Environment visitorEnvironment = new BuildingEnvironment(processingEnv, definition);
                 ElementVisitor<Void, Environment> visitor = createVisitor(createInterfaceFilter(generateAnnotation.ignoreSuperInterface()));
 
@@ -100,7 +100,7 @@ public class ClassProcessor extends AbstractProcessor {
 
                     generateClassDefinition(writer, generateClassAnnotation, definition, className, targetInterface);
 
-                    boolean isHavingSuperClass = isHavingSuperClass(generateClassAnnotation);
+                    boolean isHavingSuperClass = isHavingSuperClass(definition, generateClassAnnotation);
                     Modifier modifier = generateAnnotation.fieldModifier();
                     int shift = 1;
                     shift = generateFields(writer, shift, generateClassAnnotation, definition, targetInterface, modifier);
@@ -158,13 +158,21 @@ public class ClassProcessor extends AbstractProcessor {
         writer.append(indent(shift)).append(modifier.getModifier()).append((modifier == Modifier.DEFAULT ? "" : " ")).append(typeName).append(" ").append(toSafeName(property.getName())).append(";\n");
         return shift;
     }
+    
+    private boolean isAbstractMethod(Attribute attribute) {
+        if(attribute instanceof Property) {
+            Property prop = (Property)attribute;
+            return prop.isAbstract();
+        }
+        return false;
+    }
 
     protected int generateGetter(Writer writer, int shift, TypeElement element, AnnotationMirror generateClassAnnotation, Attribute attribute, ClassDefinition definition, Modifier modifier) throws IOException {
         Types typeUtils = processingEnv.getTypeUtils();
         String propertyType = attribute.getType().toString();
         boolean threadSafe = isThreadSafe(generateClassAnnotation);
 
-        if(definition.getElementType() == ElementType.INTERFACE) {
+        if(isAbstractMethod(attribute)) {
             writer.append(indent(shift)).append("@Override\n");
         }
         writer.append(indent(shift)).append(modifier.getModifier()).append(" ").append(propertyType).append(isBoolean(attribute.getType(), typeUtils) ? " is" : " get").append(capitalize(attribute.getName())).append("() {\n");
@@ -269,9 +277,10 @@ public class ClassProcessor extends AbstractProcessor {
         return ((Boolean)serializableValue.getValue()).booleanValue();
     }
 
-    protected final boolean isHavingSuperClass(AnnotationMirror annotation) {
+    protected final boolean isHavingSuperClass(ClassDefinition definition, AnnotationMirror annotation) {
         Elements elementUtils = processingEnv.getElementUtils();
         boolean havingSuperClass = !getSuperClassValue(elementUtils.getElementValuesWithDefaults(annotation)).isEmpty();
+//        boolean isTargetAClass = definition.getElementType() == ElementType.CLASS;
         return havingSuperClass || isHavingSuperClassName(annotation);
     }
 
@@ -369,7 +378,7 @@ public class ClassProcessor extends AbstractProcessor {
         Elements elementUtils = processingEnv.getElementUtils();
 
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored() && !property.isFieldDefined()) {
+            if(!property.isIgnored() && !property.isFieldDefined() && property.isAbstract()) {
                 shift = generateField(property, writer, shift, modifier);
             }
         }
@@ -379,8 +388,7 @@ public class ClassProcessor extends AbstractProcessor {
             generatePropertySupportField(elementUtils, writer, shift);
         }
 
-
-        if(isThreadSafe(annotation) && !isHavingSuperClass(annotation)) {
+        if(isThreadSafe(annotation)) {
             writer.append("\n");
             writer.append(indent(shift)).append("protected final java.util.concurrent.locks.ReadWriteLock ").append(INSTANCE_LOCK).append(" = new java.util.concurrent.locks.ReentrantReadWriteLock();\n");
         }
@@ -403,16 +411,20 @@ public class ClassProcessor extends AbstractProcessor {
         
         for (Field field : definition.getInnerFields(typeUtils)) {
             if(!field.isIgnored()) {
-                Modifier methodModifier = Modifier.valueOf(field.getMethodModifier());
-                shift = generateGetter(writer, shift, targetInterface, annotation, field, definition, methodModifier);
-                if(!field.isReadOnly()) {
-                    shift = generateSetter(writer, shift, targetInterface, annotation, field, definition, methodModifier);
+                Property prop = definition.findProperty(field.getName(), field.getType(), typeUtils);
+                
+                if(prop == null) {
+                    Modifier methodModifier = Modifier.valueOf(field.getMethodModifier());
+                    shift = generateGetter(writer, shift, targetInterface, annotation, field, definition, methodModifier);
+                    if(!field.isReadOnly()) {
+                        shift = generateSetter(writer, shift, targetInterface, annotation, field, definition, methodModifier);
+                    }
                 }
             }
         }
         
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
+            if(!property.isIgnored() && property.isAbstract()) {
                 if(property.isReadable()) {
                     shift = generateGetter(writer, shift, targetInterface, annotation, property, definition, Modifier.PUBLIC);
                 }
@@ -480,7 +492,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
         
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored() && !property.isFieldDefined() && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
+            if(isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
                 String type = property.getType().toString();
                 if(!isFirst) {
                     writer.append(", ");
@@ -500,7 +512,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
         
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored() && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
+            if(isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
                 shift = generateFieldInitializer(writer, shift, element, property);
             }
         }
@@ -544,16 +556,14 @@ public class ClassProcessor extends AbstractProcessor {
         }
         
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
-                if(isReadOnlyProperty(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
-                    String type = property.getType().toString();
-                    if(!isFirst) {
-                        writer.append(", ");
-                    } else {
-                        isFirst = false;
-                    }
-                    writer.append(type).append(" ").append(toSafeName(property.getName()));
+            if(isReadOnlyProperty(property) && isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
+                String type = property.getType().toString();
+                if(!isFirst) {
+                    writer.append(", ");
+                } else {
+                    isFirst = false;
                 }
+                writer.append(type).append(" ").append(toSafeName(property.getName()));
             }
         }
         writer.append(") {\n");
@@ -567,10 +577,8 @@ public class ClassProcessor extends AbstractProcessor {
         }
         
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
-                if(isReadOnlyProperty(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
-                    shift = generateFieldInitializer(writer, shift, element, property);
-                }
+            if(isReadOnlyProperty(property) && isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
+                shift = generateFieldInitializer(writer, shift, element, property);
             }
         }
 
@@ -580,6 +588,10 @@ public class ClassProcessor extends AbstractProcessor {
 
         writer.append(indent(--shift)).append("}\n\n");
         return shift;
+    }
+    
+    protected boolean isPropertyGenerateTarget(Property property) {
+        return !property.isIgnored() && property.isAbstract();
     }
 
     protected boolean isReadOnlyProperty(Property property) {
@@ -801,15 +813,15 @@ public class ClassProcessor extends AbstractProcessor {
         writer.append(indent(shift)).append("@Override\n")
               .append(indent(shift)).append("public ").append(className).append(" clone() {\n");
 
-        if(isHavingSuperClass(annotation)) {
-            writer.append(indent(++shift)).append("return (").append(className).append(") super.clone();\n");
-        } else {
+//        if(isHavingSuperClass(annotation)) {
+//            writer.append(indent(++shift)).append("return (").append(className).append(") super.clone();\n");
+//        } else {
             writer.append(indent(++shift)).append("try {\n")
                   .append(indent(++shift)).append("return (").append(className).append(") super.clone();\n")
                   .append(indent(--shift)).append("} catch(CloneNotSupportedException ex) {\n")
                   .append(indent(++shift)).append("throw new IllegalStateException(ex);\n")
                   .append(indent(--shift)).append("}\n");
-        }
+//        }
 
         writer.append(indent(--shift)).append("}\n\n");
         return shift;

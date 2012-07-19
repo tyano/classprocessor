@@ -32,7 +32,7 @@ import javax.lang.model.util.Types;
  *
  * @author Tsutomu YANO
  */
-public class DefautClassDefinition implements ClassDefinition {
+public class DefaultClassDefinition implements ClassDefinition {
     private ElementType elementType;
     private String pkg;
     private String interfaceName;
@@ -41,7 +41,7 @@ public class DefautClassDefinition implements ClassDefinition {
     private final List<ExecutableElement> methods = new ArrayList<ExecutableElement>();
     private final List<TypeParameterElement> typeParameters = new ArrayList<TypeParameterElement>();
 
-    public DefautClassDefinition() {
+    public DefaultClassDefinition() {
         super();
     }
 
@@ -139,6 +139,10 @@ public class DefautClassDefinition implements ClassDefinition {
         List<Field> innerFields = new ArrayList<Field>();
         for (Field field : fields) {
             Property prop = findProperty(field.getName(), field.getType(), typeUtil);
+            
+            //if a field have a property which have same name and the property is not
+            //abstract, then the field is already implemented as a property.
+            //the field is not a inner field.
             if(prop == null) {
                 innerFields.add(field);
             }
