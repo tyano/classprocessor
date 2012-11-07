@@ -329,6 +329,29 @@ public class ClassProcessor extends AbstractProcessor {
         writer.append("@javax.annotation.Generated(value = \"" + this.getClass().getName() + "\", date = \"" + generationTime + "\")\n");
         writer.append("public ").append(isAbstract(annotation, definition) ? "abstract " : "").append("class ").append(className);
 
+        //generated class must have same type-parameters with a base interface.
+        Collection<TypeParameterElement> typeParams = definition.getTypeParameterElements();
+        if(typeParams != null && !typeParams.isEmpty()) {
+            writer.append("<");
+            int index = 0;
+            for (TypeParameterElement typeParam : typeParams) {
+                if(index > 0) writer.append(",");
+                writer.append(typeParam.getSimpleName().toString());
+                List<? extends TypeMirror> bounds = typeParam.getBounds();
+                if(!bounds.isEmpty()) {
+                    writer.append(" extends ");
+                    int ix = 0;
+                    for (TypeMirror bound : bounds) {
+                        if(ix > 0) writer.append("&");
+                        writer.append(bound.toString());
+                        ix++;
+                    }
+                }
+                index++;
+            }
+            writer.append(">");
+        }
+
         boolean extended = false;
         boolean implemented = false;
         
@@ -349,6 +372,19 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         writer.append(" ").append(definition.getElementType().getExtendString()).append(" ").append(definition.getPackage() + "." + definition.getClassName());
+
+        //append name of type-parameters if interface have them.
+        if(typeParams != null && !typeParams.isEmpty()) {
+            writer.append("<");
+            int index = 0;
+            for (TypeParameterElement typeParam : typeParams) {
+                if(index > 0) writer.append(",");
+                writer.append(typeParam.getSimpleName().toString());
+                index++;
+            }
+            writer.append(">");
+        }
+
 
         boolean isSerializable = isSerializable(annotation);
         if(isSerializable) {
