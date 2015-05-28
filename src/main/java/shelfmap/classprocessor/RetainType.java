@@ -29,7 +29,7 @@ public enum RetainType implements RetainCode {
     NEW {
         @Override
         public String codeFor(String argName, Attribute attribute) {
-            return "new " + attribute.getRealType().toString() + "(" + argName + ")";
+            return String.format("%2$s == null ? null : new %1$s(%2$s)", attribute.getRealType().toString(), argName);
         }
     },
     CLONE {
