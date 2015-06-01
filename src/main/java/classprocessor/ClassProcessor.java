@@ -27,13 +27,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.processing.*;
-import javax.lang.model.SourceVersion;
 import javax.tools.JavaFileObject;
 
 import static classprocessor.util.Strings.capitalize;
 
 import java.beans.PropertyChangeSupport;
 import java.util.*;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
@@ -44,7 +44,7 @@ import javax.lang.model.util.Types;
  *
  * @author Tsutomu YANO
  */
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 @SupportedAnnotationTypes({"classprocessor.annotation.GenerateClass"})
 public class ClassProcessor extends AbstractProcessor {
 
