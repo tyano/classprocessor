@@ -13,7 +13,7 @@ import javax.lang.model.SourceVersion;
  * @author Tsutomu YANO
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedAnnotationTypes({"shelfmap.classprocessor.annotation.GenerateClass"})
+@SupportedAnnotationTypes({"classprocessor.annotation.GenerateClass"})
 public class RemovePrefixClassProcessor extends ClassProcessor {
 
     public RemovePrefixClassProcessor() {

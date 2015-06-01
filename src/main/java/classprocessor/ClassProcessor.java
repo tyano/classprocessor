@@ -45,7 +45,7 @@ import javax.lang.model.util.Types;
  * @author Tsutomu YANO
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
-@SupportedAnnotationTypes({"shelfmap.classprocessor.annotation.GenerateClass"})
+@SupportedAnnotationTypes({"classprocessor.annotation.GenerateClass"})
 public class ClassProcessor extends AbstractProcessor {
 
     private static final String INSTANCE_LOCK = "instanceLock";
