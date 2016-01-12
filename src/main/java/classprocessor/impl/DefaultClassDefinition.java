@@ -174,7 +174,7 @@ public class DefaultClassDefinition implements ClassDefinition {
 
     public boolean isHavingIgnoredProperty() {
         for (Property property : getProperties()) {
-            if(property.isIgnored()) return true;
+            if(property.isIgnored() && !property.isDefault()) return true;
         }
         return false;
     }

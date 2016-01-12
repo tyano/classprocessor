@@ -30,6 +30,8 @@ public interface Property extends Attribute {
     boolean isWritable();
     boolean isAbstract();
     void setAbstract(boolean isAbstract);
+    boolean isDefault();
+    void setDefault(boolean isDefault);
 
     /**
      * return true if a backend field for a property is already defined.

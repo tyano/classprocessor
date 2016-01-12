@@ -414,7 +414,7 @@ public class ClassProcessor extends AbstractProcessor {
         Elements elementUtils = processingEnv.getElementUtils();
 
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored() && !property.isFieldDefined() && property.isAbstract()) {
+            if(isPropertyGenerateTarget(property) && !property.isFieldDefined()) {
                 shift = generateField(property, writer, shift, modifier);
             }
         }
@@ -460,7 +460,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored() && property.isAbstract()) {
+            if(isPropertyGenerateTarget(property)) {
                 if(property.isReadable()) {
                     shift = generateGetter(writer, shift, targetInterface, annotation, property, definition, Modifier.PUBLIC);
                 }
@@ -480,7 +480,7 @@ public class ClassProcessor extends AbstractProcessor {
         int readablePropertyCount = 0;
         int writablePropertyCount = 0;
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
+            if(isFieldGenerateTarget(property)) {
                 if(property.isReadable()) readablePropertyCount++;
                 if(property.isWritable()) writablePropertyCount++;
                 propertyCount++;
@@ -528,7 +528,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
+            if(isFieldGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
                 String type = property.getType().toString();
                 if(!isFirst) {
                     writer.append(", ");
@@ -548,7 +548,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
+            if(isFieldGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.FULL_ARG_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
                 shift = generateFieldInitializer(writer, shift, element, property);
             }
         }
@@ -592,7 +592,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(isReadOnlyProperty(property) && isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
+            if(isReadOnlyProperty(property) && isFieldGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.CONSTRUCTOR_ARGUMENTS)) {
                 String type = property.getType().toString();
                 if(!isFirst) {
                     writer.append(", ");
@@ -613,7 +613,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(isReadOnlyProperty(property) && isPropertyGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
+            if(isReadOnlyProperty(property) && isFieldGenerateTarget(property) && canInitializeField(property, ConstructorGenerationType.READ_ONLY_CONSTRUCTOR, ConstructorGenerationPhase.FIELD_INITALIZATION)) {
                 shift = generateFieldInitializer(writer, shift, element, property);
             }
         }
@@ -626,8 +626,12 @@ public class ClassProcessor extends AbstractProcessor {
         return shift;
     }
 
+    protected boolean isFieldGenerateTarget(Property property) {
+        return !property.isIgnored() && !property.isDefault();
+    }
+
     protected boolean isPropertyGenerateTarget(Property property) {
-        return !property.isIgnored() && property.isAbstract();
+        return (!property.isIgnored() && !property.isDefault()) && property.isAbstract();
     }
 
     protected boolean isReadOnlyProperty(Property property) {
@@ -669,7 +673,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
+            if(isFieldGenerateTarget(property)) {
                 shift = generateEqualForOneAttribute(property, writer, shift);
             }
         }
@@ -737,7 +741,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
+            if(isFieldGenerateTarget(property)) {
                 generateHashCodeForOneAttribute(property, writer, shift);
             }
         }
@@ -808,7 +812,7 @@ public class ClassProcessor extends AbstractProcessor {
         }
 
         for (Property property : definition.getProperties()) {
-            if(!property.isIgnored()) {
+            if(isFieldGenerateTarget(property)) {
                 shift = generateToStringForOneAttribute(isFirst, property, writer, shift);
                 if(isFirst) isFirst = false;
             }

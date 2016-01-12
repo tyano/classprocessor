@@ -30,6 +30,7 @@ public class DefaultProperty implements Property {
     private boolean readable;
     private boolean fieldDefined = false;
     private boolean isAbstract = true;
+    private boolean isDefault = false;
     private final String name;
     private final TypeMirror type;
     private String retainType = "HOLD";
@@ -38,11 +39,12 @@ public class DefaultProperty implements Property {
     private ExecutableElement reader;
     private ExecutableElement writer;
 
-    public DefaultProperty(String name, TypeMirror type, boolean defined, boolean isAbstract, ExecutableElement reader, ExecutableElement writer) {
+    public DefaultProperty(String name, TypeMirror type, boolean defined, boolean isAbstract, boolean isDefault, ExecutableElement reader, ExecutableElement writer) {
         this.name = name;
         this.type = type;
         this.defined = defined;
         this.isAbstract = isAbstract;
+        this.isDefault = isDefault;
         this.readable = (reader != null);
         this.writable = (writer != null);
         this.reader = reader;
@@ -82,6 +84,16 @@ public class DefaultProperty implements Property {
     @Override
     public void setAbstract(boolean isAbstract) {
         this.isAbstract = isAbstract;
+    }
+
+    @Override
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    @Override
+    public void setDefault(boolean isDefault) {
+        this.isDefault = isDefault;
     }
 
     @Override
@@ -149,17 +161,19 @@ public class DefaultProperty implements Property {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 67 * hash + (this.defined ? 1 : 0);
-        hash = 67 * hash + (this.writable ? 1 : 0);
-        hash = 67 * hash + (this.readable ? 1 : 0);
-        hash = 67 * hash + (this.fieldDefined ? 1 : 0);
-        hash = 67 * hash + (this.name != null ? this.name.hashCode() : 0);
-        hash = 67 * hash + (this.type != null ? this.type.hashCode() : 0);
-        hash = 67 * hash + (this.retainType != null ? this.retainType.hashCode() : 0);
-        hash = 67 * hash + (this.realType != null ? this.realType.hashCode() : 0);
-        hash = 67 * hash + (this.ignore ? 1 : 0);
-        hash = 67 * hash + (this.reader != null ? this.reader.hashCode() : 0);
-        hash = 67 * hash + (this.writer != null ? this.writer.hashCode() : 0);
+        hash = 29 * hash + (this.defined ? 1 : 0);
+        hash = 29 * hash + (this.writable ? 1 : 0);
+        hash = 29 * hash + (this.readable ? 1 : 0);
+        hash = 29 * hash + (this.fieldDefined ? 1 : 0);
+        hash = 29 * hash + (this.isAbstract ? 1 : 0);
+        hash = 29 * hash + (this.isDefault ? 1 : 0);
+        hash = 29 * hash + (this.name != null ? this.name.hashCode() : 0);
+        hash = 29 * hash + (this.type != null ? this.type.hashCode() : 0);
+        hash = 29 * hash + (this.retainType != null ? this.retainType.hashCode() : 0);
+        hash = 29 * hash + (this.realType != null ? this.realType.hashCode() : 0);
+        hash = 29 * hash + (this.ignore ? 1 : 0);
+        hash = 29 * hash + (this.reader != null ? this.reader.hashCode() : 0);
+        hash = 29 * hash + (this.writer != null ? this.writer.hashCode() : 0);
         return hash;
     }
 
@@ -182,6 +196,12 @@ public class DefaultProperty implements Property {
             return false;
         }
         if (this.fieldDefined != other.fieldDefined) {
+            return false;
+        }
+        if (this.isAbstract != other.isAbstract) {
+            return false;
+        }
+        if (this.isDefault != other.isDefault) {
             return false;
         }
         if ((this.name == null) ? (other.name != null) : !this.name.equals(other.name)) {
@@ -210,6 +230,6 @@ public class DefaultProperty implements Property {
 
     @Override
     public String toString() {
-        return "DefaultProperty{" + "defined=" + defined + ", writable=" + writable + ", readable=" + readable + ", fieldDefined=" + fieldDefined + ", name=" + name + ", type=" + type + ", retainType=" + retainType + ", realType=" + realType + ", ignore=" + ignore + ", reader=" + reader + ", writer=" + writer + '}';
+        return "DefaultProperty{" + "defined=" + defined + ", writable=" + writable + ", readable=" + readable + ", fieldDefined=" + fieldDefined + ", isAbstract=" + isAbstract + ", isDefault=" + isDefault + ", name=" + name + ", type=" + type + ", retainType=" + retainType + ", realType=" + realType + ", ignore=" + ignore + ", reader=" + reader + ", writer=" + writer + '}';
     }
 }

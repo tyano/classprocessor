@@ -22,6 +22,7 @@ import static classprocessor.util.Strings.*;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 
 
@@ -124,14 +125,16 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
         ClassDefinition definition = env.getClassDefinition();
         Property property = buildPropertyFromExecutableElement(ee, env);
 
-        //if the creation of a property object success, now the ee is a variation of a property (readable or writable)
+        //if the creation of a property object successes, now the ee is a variation of a property (readable or writable)
         if(property != null) {
             Property prev = definition.findProperty(property.getName(), property.getType(), typeUtil);
 
             //if a property having same name and same type is already added to InterfaceDifinition,
             //we merge their readable and writable attributes into the previously added object.
             if(prev != null) {
-                mergeProperty(prev, property);
+                if(prev.isIgnored() == false) {
+                    mergeProperty(prev, property);
+                }
             } else {
                 //new property. simplly add it into InterfaceDefinition.
                 definition.addProperties(typeUtil, property);
@@ -150,6 +153,14 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
 
         if(p2.isWritable()) {
             p1.setWriter(p2.getWriter());
+        }
+
+        if(p2.isIgnored()) {
+            p1.setIgnored(true);
+        }
+
+        if(p2.isDefault()) {
+            p1.setDefault(true);
         }
     }
 
@@ -217,20 +228,21 @@ public class PropertyVisitor extends ElementScanner6<Void, Environment> {
 
             boolean isDefined = level == 0;
             boolean isAbstract = definition.getElementType() == ElementType.CLASS || ee.getModifiers().contains(javax.lang.model.element.Modifier.ABSTRACT);
+            boolean isDefault = env.getProcessingEnvironment().getSourceVersion() == SourceVersion.RELEASE_8 && ee.isDefault();
 
             if(name.startsWith("get") || name.startsWith("set") || name.startsWith("is")) {
                 if(name.startsWith("get")) {
-                    property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getReturnType(), isDefined, isAbstract, ee, null);
+                    property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getReturnType(), isDefined, isAbstract, isDefault, ee, null);
                 } else if(name.startsWith("set")) {
                     if(ee.getParameters().size() == 1) {
-                        property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getParameters().get(0).asType(), isDefined, isAbstract, null, ee);
+                        property = new DefaultProperty(uncapitalize(name.substring(3)), ee.getParameters().get(0).asType(), isDefined, isAbstract, isDefault, null, ee);
                     }
                 } else if(name.startsWith("is")) {
                     PrimitiveType bool = typeUtil.getPrimitiveType(TypeKind.BOOLEAN);
                     if(typeUtil.isSameType(ee.getReturnType(), bool) ||
                        typeUtil.isSameType(ee.getReturnType(), typeUtil.boxedClass(bool).asType())) {
 
-                        property =  new DefaultProperty(uncapitalize(name.substring(2)), ee.getReturnType(), isDefined, isAbstract, ee, null);
+                        property =  new DefaultProperty(uncapitalize(name.substring(2)), ee.getReturnType(), isDefined, isAbstract, isDefault, ee, null);
                     }
                 }
 
